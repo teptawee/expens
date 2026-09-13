@@ -2,108 +2,102 @@
 // ⚡ API with CacheService — เร็วขึ้น 10 เท่า
 // ============================================
 
-const CACHE_TTL = 300; // 5 นาที
-
-// ✅ Cache wrapper
-function cached(key, fn, ttl) {
-  const cache = CacheService.getScriptCache();
-  const hit = cache.get(key);
-  if (hit) {
-    try { return JSON.parse(hit); } catch(e) {}
+const API = (() => {
+  const cache = new Map();
+  const CALLBACK_PREFIX = 'gsCb_' + Date.now() + '_';
+  
+  // JSONP (เก็บเหมือนเดิม)
+  function jsonp(params, timeout = 30000) {
+    return new Promise((resolve, reject) => {
+      const cbName = CALLBACK_PREFIX + Math.floor(Math.random() * 1e9);
+      const script = document.createElement('script');
+      let done = false;
+      
+      const timer = setTimeout(() => {
+        if (done) return;
+        done = true;
+        cleanup();
+        reject(new Error('Timeout'));
+      }, timeout);
+      
+      function cleanup() {
+        clearTimeout(timer);
+        delete window[cbName];
+        if (script.parentNode) script.parentNode.removeChild(script);
+      }
+      
+      window[cbName] = (r) => {
+        if (done) return;
+        done = true;
+        cleanup();
+        if (r && r.success) resolve(r.data);
+        else reject(new Error(r?.error || 'API error'));
+      };
+      
+      const query = new URLSearchParams({ ...params, callback: cbName, _t: Date.now() });
+      script.src = `${CONFIG.API_URL}?${query}`;
+      script.onerror = () => { if (!done) { done = true; cleanup(); reject(new Error('Network')); } };
+      document.body.appendChild(script);
+    });
   }
   
-  const result = fn();
+  // ✅ เก็บ full data ไว้ใน memory ตลอด session
+  let fullDataCache = null;
   
-  try {
-    const json = JSON.stringify(result);
-    // CacheService จำกัด 100KB ต่อ key
-    if (json.length < 100000) {
-      cache.put(key, json, ttl || CACHE_TTL);
-    }
-  } catch(e) {}
-  
-  return result;
-}
-
-// ✅ ล้าง cache เมื่อข้อมูลเปลี่ยน
-function clearApiCache() {
-  const cache = CacheService.getScriptCache();
-  cache.remove('full_data');
-  cache.remove('bootstrap');
-  cache.remove('dashboard');
-}
-
-// ✅ โหลดทุกอย่างใน 1 ครั้ง + cache 5 นาที
-function getFullData() {
-  return cached('full_data', function() {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+  return {
+    // ✅ โหลดครั้งเดียว ใช้ได้ทุกหน้า
+    getFullData: async (force = false) => {
+      if (!force && fullDataCache) return fullDataCache;
+      fullDataCache = await jsonp({ action: 'getFullData' });
+      return fullDataCache;
+    },
     
-    // ✅ อ่านทุก sheet ทีละครั้ง (เร็วกว่าเรียกซ้ำ)
-    const allData = {
-      cat: ss.getSheetByName(SHEET_NAMES.CATEGORIES).getDataRange().getValues(),
-      pay: ss.getSheetByName(SHEET_NAMES.PAYMENT_TYPES).getDataRange().getValues(),
-      bud: ss.getSheetByName(SHEET_NAMES.BUDGETS).getDataRange().getValues(),
-      set: ss.getSheetByName(SHEET_NAMES.SETTINGS).getDataRange().getValues(),
-      tx:  ss.getSheetByName(SHEET_NAMES.TRANSACTIONS).getDataRange().getValues()
-    };
-    
-    // ✅ Parse แบบ manual (เร็วกว่า .map + .filter)
-    const categories = [];
-    for (let i = 1; i < allData.cat.length; i++) {
-      const r = allData.cat[i];
-      if (r[0]) categories.push({ id: r[0], name: r[1], color: r[2] });
-    }
-    
-    const paymentTypes = [];
-    for (let i = 1; i < allData.pay.length; i++) {
-      const r = allData.pay[i];
-      if (r[0]) paymentTypes.push({ id: r[0], name: r[1], icon: r[2], color: r[3] });
-    }
-    
-    const budgets = [];
-    for (let i = 1; i < allData.bud.length; i++) {
-      const r = allData.bud[i];
-      if (r[0]) budgets.push({
-        categoryId: r[0],
-        monthlyLimit: Number(r[1]) || 0,
-        alertPercent: Number(r[2]) || 80
+    // ✅ getTransactions กรองจาก full data ใน memory (เร็วมาก!)
+    getTransactions: async (filters = {}) => {
+      const full = await API.getFullData();
+      let txs = full.transactions || [];
+      
+      if (filters.startDate) txs = txs.filter(t => t.date >= filters.startDate);
+      if (filters.endDate) txs = txs.filter(t => t.date <= filters.endDate);
+      if (filters.category && filters.category !== 'all') {
+        txs = txs.filter(t => t.category === filters.category);
+      }
+      
+      return txs.sort((a, b) => {
+        const c = (b.date || '').localeCompare(a.date || '');
+        return c !== 0 ? c : (b.timestamp || '').localeCompare(a.timestamp || '');
       });
-    }
+    },
     
-    const settings = {};
-    for (let i = 1; i < allData.set.length; i++) {
-      const r = allData.set[i];
-      if (r[0]) settings[r[0]] = r[1];
-    }
+    // ✅ Mutations — clear cache ฝั่ง client
+    addTransaction: (data) => jsonp({ action: 'addTransaction', data: JSON.stringify(data) })
+      .then(r => { fullDataCache = null; return r; }),
+    updateTransaction: (id, data) => jsonp({ action: 'updateTransaction', id, data: JSON.stringify(data) })
+      .then(r => { fullDataCache = null; return r; }),
+    deleteTransaction: (id) => jsonp({ action: 'deleteTransaction', id })
+      .then(r => { fullDataCache = null; return r; }),
     
-    // ✅ Transactions
-    const tz = Session.getScriptTimeZone();
-    const transactions = [];
-    for (let i = 1; i < allData.tx.length; i++) {
-      const r = allData.tx[i];
-      if (!r[0]) continue;
-      transactions.push({
-        id: r[0],
-        date: r[1] instanceof Date
-          ? Utilities.formatDate(r[1], tz, 'yyyy-MM-dd')
-          : String(r[1] || ''),
-        category: r[2] || '',
-        paymentType: r[3] || '',
-        amount: Number(r[4]) || 0,
-        note: r[5] || '',
-        timestamp: r[6] ? String(r[6]) : ''
-      });
-    }
+    addCategory: (data) => jsonp({ action: 'addCategory', data: JSON.stringify(data) })
+      .then(r => { fullDataCache = null; return r; }),
+    updateCategory: (id, data) => jsonp({ action: 'updateCategory', id, data: JSON.stringify(data) })
+      .then(r => { fullDataCache = null; return r; }),
+    deleteCategory: (id) => jsonp({ action: 'deleteCategory', id })
+      .then(r => { fullDataCache = null; return r; }),
     
-    // ✅ คำนวณ stats ทั้งหมดจาก transactions ที่โหลดมาแล้ว (ไม่ต้องอ่านซ้ำ)
-    const stats = calculateStats(transactions, categories, paymentTypes, budgets);
+    addPaymentType: (data) => jsonp({ action: 'addPaymentType', data: JSON.stringify(data) })
+      .then(r => { fullDataCache = null; return r; }),
+    updatePaymentType: (id, data) => jsonp({ action: 'updatePaymentType', id, data: JSON.stringify(data) })
+      .then(r => { fullDataCache = null; return r; }),
+    deletePaymentType: (id) => jsonp({ action: 'deletePaymentType', id })
+      .then(r => { fullDataCache = null; return r; }),
     
-    return Object.assign(
-      { categories, paymentTypes, budgets, settings, transactions },
-      stats
-    );
-  });
-}
+    setBudget: (categoryId, monthlyLimit, alertPercent) =>
+      jsonp({ action: 'setBudget', categoryId, monthlyLimit, alertPercent })
+        .then(r => { fullDataCache = null; return r; }),
+    
+    clearCache: () => { fullDataCache = null; }
+  };
+})();
 
 // ✅ แยกฟังก์ชันคำนวณ stats (ใช้ transactions ที่มีอยู่แล้ว)
 function calculateStats(transactions, categories, paymentTypes, budgets) {
