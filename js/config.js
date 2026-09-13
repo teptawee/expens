@@ -2,25 +2,41 @@
 // ⚙️ CONFIG
 // ============================================
 const CONFIG = {
-  // 🔥 ใส่ Web App URL จาก Apps Script ที่นี่
+  // 🔥 ใส่ Web App URL
   API_URL: 'https://script.google.com/macros/s/AKfycbwNU4At02y8CJf-7ebpMfrP_osOuQ_ZiUaHj2noD8r_5XxLw5vKlNPHAkjDRBzC3owSTg/exec',
   
   CACHE_TTL: 300000,
   CURRENCY: '฿',
   
   COLORS: {
-    pink: '#FF6FB5', pinkDark: '#FF4FA0',
-    blue: '#4FD9E8', blueDark: '#2EBFD0',
-    mint: '#4FE8B5', mintDark: '#2FC995',
-    yellow: '#FFD966', yellowDark: '#FFC933',
-    peach: '#FF9B5C', peachDark: '#FF7F33',
-    lavender: '#A47BFF', lavenderDark: '#8A5CFF',
-    rose: '#FF5C7A', roseDark: '#FF3355',
-    dark: '#0F0B1A', light: '#1A1430'
+    roseGold: '#E8A598',
+    roseGoldLight: '#F5C6BB',
+    copper: '#C4785A',
+    royal: '#5B3A7E',
+    royalLight: '#8B5FA8',
+    plum: '#2D1B3D',
+    plumLight: '#3D2A52',
+    olive: '#7A8B5C',
+    oliveLight: '#9BAE7C',
+    berry: '#D4647E',
+    blush: '#F0C4C8',
+    champagne: '#E5C9A0',
+    cream: '#F5E6D3',
+    dark: '#1A0F26',
+    light: '#FDF8F0'
   },
   
   CHART_COLORS: [
-    '#FF6FB5', '#4FD9E8', '#4FE8B5', '#FFD966', '#FF9B5C',
-    '#A47BFF', '#FF5C7A', '#FFB6D9', '#7FDCFF', '#B89BFF', '#FF8FC5'
+    '#E8A598', // Rose gold
+    '#8B5FA8', // Royal purple
+    '#9BAE7C', // Olive
+    '#E5C9A0', // Champagne
+    '#D4647E', // Berry
+    '#C4785A', // Copper
+    '#F5C6BB', // Light rose
+    '#B89BC9', // Light purple
+    '#C8DCAB', // Light olive
+    '#F5D9A0', // Light champagne
+    '#FFB0C0'  // Light berry
   ]
 };
