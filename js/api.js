@@ -1,98 +1,134 @@
 // ============================================
-// 🔌 API Client - ใช้ JSONP เลี่ยง CORS
+// 🌐 REST API - สำหรับ GitHub Pages (JSONP + POST)
 // ============================================
-const API = (() => {
-  const cache = new Map();
+
+function doPost(e) {
+  try {
+    const body = JSON.parse(e.postData.contents);
+    const action = body.action;
+    const params = body.params || {};
+    
+    const result = routeAction(action, params);
+    
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: true, data: result }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: false, error: err.message }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// ตรวจสอบ: ถ้ามี action param → API mode, ถ้าไม่มี → HTML Web App mode
+function doGet(e) {
+  const action = e.parameter.action;
+  const callback = e.parameter.callback;
   
-  // สร้าง JSONP request (เลี่ยง CORS กับ Google Apps Script)
-  function jsonp(params, timeout = 15000) {
-    return new Promise((resolve, reject) => {
-      const callbackName = 'gsCallback_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-      const script = document.createElement('script');
+  // ⚡ ถ้ามี action → เป็น API request
+  if (action) {
+    try {
+      const result = routeAction(action, e.parameter);
       
-      const timer = setTimeout(() => {
-        cleanup();
-        reject(new Error('Request timeout'));
-      }, timeout);
-      
-      function cleanup() {
-        clearTimeout(timer);
-        delete window[callbackName];
-        if (script.parentNode) script.parentNode.removeChild(script);
+      if (callback) {
+        return ContentService
+          .createTextOutput(callback + '(' + JSON.stringify({ success: true, data: result }) + ')')
+          .setMimeType(ContentService.MimeType.JAVASCRIPT);
       }
       
-      window[callbackName] = (response) => {
-        cleanup();
-        if (response.success) resolve(response.data);
-        else reject(new Error(response.error || 'API error'));
-      };
+      return ContentService
+        .createTextOutput(JSON.stringify({ success: true, data: result }))
+        .setMimeType(ContentService.MimeType.JSON);
+    } catch (err) {
+      const errResponse = JSON.stringify({ success: false, error: err.message });
       
-      const query = new URLSearchParams({
-        ...params,
-        callback: callbackName,
-        _t: Date.now()  // กัน cache ของ browser
-      });
+      if (callback) {
+        return ContentService
+          .createTextOutput(callback + '(' + errResponse + ')')
+          .setMimeType(ContentService.MimeType.JAVASCRIPT);
+      }
       
-      script.src = `${CONFIG.API_URL}?${query}`;
-      script.onerror = () => { cleanup(); reject(new Error('Network error')); };
-      document.body.appendChild(script);
-    });
-  }
-  
-  // POST ผ่าน fetch (fallback)
-  async function post(params) {
-    const res = await fetch(CONFIG.API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(params)
-    });
-    const json = await res.json();
-    if (!json.success) throw new Error(json.error);
-    return json.data;
-  }
-  
-  // Cache wrapper
-  async function cached(key, fn, ttl = CONFIG.CACHE_TTL) {
-    const hit = cache.get(key);
-    if (hit && Date.now() - hit.time < ttl) return hit.data;
-    
-    const data = await fn();
-    cache.set(key, { data, time: Date.now() });
-    return data;
-  }
-  
-  function clearCache(prefix) {
-    if (!prefix) return cache.clear();
-    for (const key of cache.keys()) {
-      if (key.startsWith(prefix)) cache.delete(key);
+      return ContentService
+        .createTextOutput(errResponse)
+        .setMimeType(ContentService.MimeType.JSON);
     }
   }
   
-  // ✅ API Methods
-  return {
-    // โหลดทุกอย่างในครั้งเดียว (เร็วที่สุด)
-    getFullData: () => cached('full', () => jsonp({ action: 'getFullData' })),
+  // 🌐 ถ้าไม่มี action → ใช้ HTML Web App mode (เหมือนเดิม)
+  const page = e.parameter.page || 'Index';
+  let template;
+  
+  try {
+    template = HtmlService.createTemplateFromFile(page);
+  } catch (err) {
+    template = HtmlService.createTemplateFromFile('Index');
+  }
+  
+  return template.evaluate()
+    .setTitle('💰 ระบบบันทึกค่าใช้จ่าย')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1, maximum-scale=1')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+function routeAction(action, params) {
+  switch (action) {
+    case 'getFullData':       return getFullData();
+    case 'getBootstrapData':  return getBootstrapData();
+    case 'getInitialData':    return getInitialData();
+    case 'getDashboardStats': return getDashboardStats();
+    case 'getTransactions':   return getTransactions(params);
     
-    getInitialData: () => cached('init', () => jsonp({ action: 'getInitialData' })),
-    getDashboardStats: () => cached('stats', () => jsonp({ action: 'getDashboardStats' })),
-    getTransactions: (filters) => jsonp({ action: 'getTransactions', ...filters }),
+    case 'addTransaction':    return addTransaction(params.data || params);
+    case 'updateTransaction': return updateTransaction(params.id, params.data);
+    case 'deleteTransaction': return deleteTransaction(params.id);
     
-    // Mutations (ไม่แคช + clear cache)
-    addTransaction: (data) => post({ action: 'addTransaction', data }).then(r => { clearCache(); return r; }),
-    updateTransaction: (id, data) => post({ action: 'updateTransaction', id, data }).then(r => { clearCache(); return r; }),
-    deleteTransaction: (id) => post({ action: 'deleteTransaction', id }).then(r => { clearCache(); return r; }),
+    case 'addCategory':       return addCategory(params.data || params);
+    case 'updateCategory':    return updateCategory(params.id, params.data);
+    case 'deleteCategory':    return deleteCategory(params.id);
     
-    addCategory: (data) => post({ action: 'addCategory', data }).then(r => { clearCache(); return r; }),
-    updateCategory: (id, data) => post({ action: 'updateCategory', id, data }).then(r => { clearCache(); return r; }),
-    deleteCategory: (id) => post({ action: 'deleteCategory', id }).then(r => { clearCache(); return r; }),
+    case 'addPaymentType':    return addPaymentType(params.data || params);
+    case 'updatePaymentType': return updatePaymentType(params.id, params.data);
+    case 'deletePaymentType': return deletePaymentType(params.id);
     
-    addPaymentType: (data) => post({ action: 'addPaymentType', data }).then(r => { clearCache(); return r; }),
-    updatePaymentType: (id, data) => post({ action: 'updatePaymentType', id, data }).then(r => { clearCache(); return r; }),
-    deletePaymentType: (id) => post({ action: 'deletePaymentType', id }).then(r => { clearCache(); return r; }),
+    case 'setBudget':         return setBudget(params.categoryId, params.monthlyLimit, params.alertPercent);
     
-    setBudget: (categoryId, monthlyLimit, alertPercent) =>
-      post({ action: 'setBudget', categoryId, monthlyLimit, alertPercent }).then(r => { clearCache(); return r; }),
-    
-    clearCache
-  };
-})();
+    default:
+      throw new Error('Unknown action: ' + action);
+  }
+}
+
+// ✅ โหลดข้อมูลตั้งต้นทั้งหมดในครั้งเดียว (เร็วที่สุด)
+function getBootstrapData() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  const [catData, payData, budgetData, settingsData] = [
+    ss.getSheetByName(SHEET_NAMES.CATEGORIES).getDataRange().getValues(),
+    ss.getSheetByName(SHEET_NAMES.PAYMENT_TYPES).getDataRange().getValues(),
+    ss.getSheetByName(SHEET_NAMES.BUDGETS).getDataRange().getValues(),
+    ss.getSheetByName(SHEET_NAMES.SETTINGS).getDataRange().getValues()
+  ];
+  
+  const categories = catData.slice(1)
+    .filter(r => r[0])
+    .map(r => ({ id: r[0], name: r[1], color: r[2] }));
+  
+  const paymentTypes = payData.slice(1)
+    .filter(r => r[0])
+    .map(r => ({ id: r[0], name: r[1], icon: r[2], color: r[3] }));
+  
+  const budgets = budgetData.slice(1)
+    .filter(r => r[0])
+    .map(r => ({ categoryId: r[0], monthlyLimit: Number(r[1]) || 0, alertPercent: Number(r[2]) || 80 }));
+  
+  const settings = {};
+  settingsData.slice(1).forEach(r => { if (r[0]) settings[r[0]] = r[1]; });
+  
+  return { categories, paymentTypes, budgets, settings };
+}
+
+// ✅ โหลดทุกอย่างในครั้งเดียว (Bootstrap + Dashboard)
+function getFullData() {
+  const base = getBootstrapData();
+  const stats = getDashboardStats();
+  return Object.assign({}, base, stats);
+}
