@@ -14,19 +14,16 @@
 </head>
 <body>
 
-<!-- Loading -->
 <div class="loading-overlay" id="loading">
   <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
 </div>
 
-<!-- Navbar -->
 <nav class="navbar navbar-expand-lg fixed-top">
   <div class="container-fluid">
     <span class="navbar-brand"><i class="fas fa-wallet"></i>ระบบบันทึกค่าใช้จ่าย</span>
   </div>
 </nav>
 
-<!-- Bottom Nav -->
 <nav class="bottom-nav">
   <a href="#" class="bottom-nav-item active" data-page="dashboard"><i class="fas fa-chart-pie"></i><span>ภาพรวม</span></a>
   <a href="#" class="bottom-nav-item" data-page="daily"><i class="fas fa-plus-circle"></i><span>บันทึก</span></a>
@@ -36,7 +33,7 @@
 
 <div class="container-fluid px-3 px-md-4">
 
-  <!-- ============ DASHBOARD ============ -->
+  <!-- DASHBOARD -->
   <div class="page-section active" id="page-dashboard">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div>
@@ -100,7 +97,7 @@
     </div>
   </div>
 
-  <!-- ============ DAILY ============ -->
+  <!-- DAILY -->
   <div class="page-section" id="page-daily">
     <div class="chart-container">
       <div class="chart-title"><i class="fas fa-plus-circle"></i> บันทึกค่าใช้จ่าย</div>
@@ -119,7 +116,7 @@
     </div>
   </div>
 
-  <!-- ============ HISTORY ============ -->
+  <!-- HISTORY -->
   <div class="page-section" id="page-history">
     <div class="chart-container">
       <div class="chart-title"><i class="fas fa-list-ul"></i> รายการทั้งหมด</div>
@@ -138,7 +135,7 @@
     </div>
   </div>
 
-  <!-- ============ SETTINGS ============ -->
+  <!-- SETTINGS -->
   <div class="page-section" id="page-settings">
     <div class="chart-container mb-4">
       <div class="d-flex justify-content-between align-items-center mb-3">
@@ -198,7 +195,6 @@
   <div class="modal-footer border-0"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button><button type="button" class="btn btn-primary" onclick="App.saveBudget()"><i class="fas fa-save me-1"></i>บันทึก</button></div>
 </div></div></div>
 
-<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="js/config.js"></script>
