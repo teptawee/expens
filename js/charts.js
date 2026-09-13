@@ -1,10 +1,10 @@
 // ============================================
 // 📊 CHARTS (Dark Theme)
 // ============================================
-const Charts = (() => {
-  let instances = {};
+const Charts = (function() {
+  var instances = {};
   
-  const baseOpts = {
+  var baseOpts = {
     responsive: true,
     maintainAspectRatio: false,
     animation: { duration: 600, easing: 'easeOutQuart' },
@@ -30,7 +30,7 @@ const Charts = (() => {
         bodyFont: { family: 'Prompt, sans-serif', size: 12 },
         callbacks: {
           label: function(context) {
-            const value = context.parsed.y ?? context.parsed ?? 0;
+            var value = context.parsed.y != null ? context.parsed.y : (context.parsed || 0);
             return (context.dataset.label || context.label || '') + ': ฿' + value.toLocaleString();
           }
         }
@@ -45,44 +45,51 @@ const Charts = (() => {
     }
   }
   
-  function destroyAll() { Object.keys(instances).forEach(destroy); }
+  function destroyAll() {
+    Object.keys(instances).forEach(function(k) { destroy(k); });
+  }
   
   function renderWeekly(data) {
-    const canvas = document.getElementById('weeklyChart');
+    var canvas = document.getElementById('weeklyChart');
     if (!canvas) return;
     destroy('weekly');
     
-    if (!data?.length) {
+    if (!data || !data.length) {
       canvas.parentElement.innerHTML = '<div class="empty-state"><i class="fas fa-chart-bar"></i><p>ยังไม่มีข้อมูล</p></div>';
       return;
     }
     
-    const colors = ['#FF6FB5', '#4FD9E8', '#4FE8B5', '#FFD966', '#FF9B5C', '#A47BFF', '#FF5C7A'];
-    const max = Math.max(...data.map(d => d.amount), 1);
+    var colors = ['#FF6FB5', '#4FD9E8', '#4FE8B5', '#FFD966', '#FF9B5C', '#A47BFF', '#FF5C7A'];
+    var max = Math.max.apply(null, data.map(function(d) { return d.amount; }).concat([1]));
     
     instances.weekly = new Chart(canvas, {
       type: 'bar',
       data: {
-        labels: data.map(d => d.day),
+        labels: data.map(function(d) { return d.day; }),
         datasets: [{
           label: 'ค่าใช้จ่าย (฿)',
-          data: data.map(d => d.amount),
-          backgroundColor: data.map((_, i) => colors[i % colors.length]),
+          data: data.map(function(d) { return d.amount; }),
+          backgroundColor: data.map(function(_, i) { return colors[i % colors.length]; }),
           borderRadius: 12,
           borderSkipped: false,
           maxBarThickness: 50
         }]
       },
       options: {
-        ...baseOpts,
-        plugins: { ...baseOpts.plugins, legend: { display: false } },
+        responsive: baseOpts.responsive,
+        maintainAspectRatio: baseOpts.maintainAspectRatio,
+        animation: baseOpts.animation,
+        plugins: {
+          legend: { display: false },
+          tooltip: baseOpts.plugins.tooltip
+        },
         scales: {
           y: {
             beginAtZero: true,
             suggestedMax: max * 1.2,
             grid: { color: 'rgba(255, 111, 181, 0.1)', drawBorder: false },
             ticks: {
-              callback: v => '฿' + v.toLocaleString(),
+              callback: function(v) { return '฿' + v.toLocaleString(); },
               font: { family: 'Prompt', size: 10 },
               color: '#7A6B9A'
             }
@@ -100,11 +107,11 @@ const Charts = (() => {
   }
   
   function renderCategory(data) {
-    const canvas = document.getElementById('categoryChart');
+    var canvas = document.getElementById('categoryChart');
     if (!canvas) return;
     destroy('category');
     
-    const withSpent = (data || []).filter(d => d.spent > 0);
+    var withSpent = (data || []).filter(function(d) { return d.spent > 0; });
     if (!withSpent.length) {
       canvas.parentElement.innerHTML = '<div class="empty-state"><i class="fas fa-chart-pie"></i><p>ยังไม่มีข้อมูล</p></div>';
       return;
@@ -113,25 +120,36 @@ const Charts = (() => {
     instances.category = new Chart(canvas, {
       type: 'doughnut',
       data: {
-        labels: withSpent.map(d => d.name),
+        labels: withSpent.map(function(d) { return d.name; }),
         datasets: [{
-          data: withSpent.map(d => d.spent),
-          backgroundColor: withSpent.map((d, i) => d.color || CONFIG.CHART_COLORS[i % CONFIG.CHART_COLORS.length]),
+          data: withSpent.map(function(d) { return d.spent; }),
+          backgroundColor: withSpent.map(function(d, i) {
+            return d.color || CONFIG.CHART_COLORS[i % CONFIG.CHART_COLORS.length];
+          }),
           borderWidth: 3,
           borderColor: '#1A1430',
           hoverOffset: 8
         }]
       },
-      options: { ...baseOpts, cutout: '60%' }
+      options: {
+        responsive: baseOpts.responsive,
+        maintainAspectRatio: baseOpts.maintainAspectRatio,
+        animation: baseOpts.animation,
+        cutout: '60%',
+        plugins: {
+          legend: baseOpts.plugins.legend,
+          tooltip: baseOpts.plugins.tooltip
+        }
+      }
     });
   }
   
   function renderPayment(data) {
-    const canvas = document.getElementById('paymentChart');
+    var canvas = document.getElementById('paymentChart');
     if (!canvas) return;
     destroy('payment');
     
-    if (!data?.length) {
+    if (!data || !data.length) {
       canvas.parentElement.innerHTML = '<div class="empty-state"><i class="fas fa-credit-card"></i><p>ยังไม่มีข้อมูล</p></div>';
       return;
     }
@@ -139,21 +157,32 @@ const Charts = (() => {
     instances.payment = new Chart(canvas, {
       type: 'doughnut',
       data: {
-        labels: data.map(d => d.name),
+        labels: data.map(function(d) { return d.name; }),
         datasets: [{
-          data: data.map(d => d.amount),
-          backgroundColor: data.map((d, i) => d.color || CONFIG.CHART_COLORS[i % CONFIG.CHART_COLORS.length]),
+          data: data.map(function(d) { return d.amount; }),
+          backgroundColor: data.map(function(d, i) {
+            return d.color || CONFIG.CHART_COLORS[i % CONFIG.CHART_COLORS.length];
+          }),
           borderWidth: 3,
           borderColor: '#1A1430',
           hoverOffset: 8
         }]
       },
-      options: { ...baseOpts, cutout: '55%' }
+      options: {
+        responsive: baseOpts.responsive,
+        maintainAspectRatio: baseOpts.maintainAspectRatio,
+        animation: baseOpts.animation,
+        cutout: '55%',
+        plugins: {
+          legend: baseOpts.plugins.legend,
+          tooltip: baseOpts.plugins.tooltip
+        }
+      }
     });
   }
   
   function renderTrend(dailyData) {
-    const canvas = document.getElementById('trendChart');
+    var canvas = document.getElementById('trendChart');
     if (!canvas) return;
     destroy('trend');
     
@@ -162,18 +191,21 @@ const Charts = (() => {
       return;
     }
     
-    const dates = Object.keys(dailyData).sort();
-    const labels = dates.map(d => { const x = new Date(d); return x.getDate() + '/' + (x.getMonth() + 1); });
-    const values = dates.map(d => dailyData[d]);
+    var dates = Object.keys(dailyData).sort();
+    var labels = dates.map(function(d) {
+      var x = new Date(d);
+      return x.getDate() + '/' + (x.getMonth() + 1);
+    });
+    var values = dates.map(function(d) { return dailyData[d]; });
     
-    const gradient = canvas.getContext('2d').createLinearGradient(0, 0, 0, 250);
+    var gradient = canvas.getContext('2d').createLinearGradient(0, 0, 0, 250);
     gradient.addColorStop(0, 'rgba(255, 111, 181, 0.4)');
     gradient.addColorStop(1, 'rgba(164, 123, 255, 0.02)');
     
     instances.trend = new Chart(canvas, {
       type: 'line',
       data: {
-        labels,
+        labels: labels,
         datasets: [{
           label: 'ค่าใช้จ่าย (฿)',
           data: values,
@@ -190,14 +222,19 @@ const Charts = (() => {
         }]
       },
       options: {
-        ...baseOpts,
-        plugins: { ...baseOpts.plugins, legend: { display: false } },
+        responsive: baseOpts.responsive,
+        maintainAspectRatio: baseOpts.maintainAspectRatio,
+        animation: baseOpts.animation,
+        plugins: {
+          legend: { display: false },
+          tooltip: baseOpts.plugins.tooltip
+        },
         scales: {
           y: {
             beginAtZero: true,
             grid: { color: 'rgba(255, 111, 181, 0.1)', drawBorder: false },
             ticks: {
-              callback: v => '฿' + v.toLocaleString(),
+              callback: function(v) { return '฿' + v.toLocaleString(); },
               font: { family: 'Prompt', size: 10 },
               color: '#7A6B9A'
             }
@@ -214,5 +251,11 @@ const Charts = (() => {
     });
   }
   
-  return { renderWeekly, renderCategory, renderPayment, renderTrend, destroyAll };
+  return {
+    renderWeekly: renderWeekly,
+    renderCategory: renderCategory,
+    renderPayment: renderPayment,
+    renderTrend: renderTrend,
+    destroyAll: destroyAll
+  };
 })();
