@@ -1,8 +1,7 @@
 // ============================================
-// 🎯 APP - Logic หลัก
+// 🎯 APP
 // ============================================
 const App = (() => {
-  // State
   let state = {
     categories: [], paymentTypes: [], budgets: [], settings: {},
     currentPage: 'dashboard', currentBudgetFilter: 'all',
@@ -11,17 +10,13 @@ const App = (() => {
   
   let modals = {};
   
-  // ---------- INIT ----------
   async function init() {
-    // Modal setup
     modals.category = new bootstrap.Modal(document.getElementById('categoryModal'));
     modals.payment = new bootstrap.Modal(document.getElementById('paymentModal'));
     modals.budget = new bootstrap.Modal(document.getElementById('budgetModal'));
     
-    // Date default
     document.getElementById('txDate').value = new Date().toISOString().split('T')[0];
     
-    // Nav
     document.querySelectorAll('.bottom-nav-item').forEach(item => {
       item.addEventListener('click', e => {
         e.preventDefault();
@@ -29,19 +24,15 @@ const App = (() => {
       });
     });
     
-    // Form
     document.getElementById('transactionForm').addEventListener('submit', handleFormSubmit);
     
-    // Load data ครั้งเดียว (เร็วมาก!)
     await loadAllData();
     state.initialized = true;
   }
   
-  // ---------- LOAD DATA (เร็ว - ครั้งเดียว) ----------
   async function loadAllData() {
     showLoading(true);
     try {
-      // ✅ โหลดทุกอย่างใน 1 request
       const data = await API.getFullData();
       
       state.categories = data.categories || [];
@@ -51,8 +42,6 @@ const App = (() => {
       
       populateDropdowns();
       loadSettingsLists();
-      
-      // Dashboard data comes with full data
       renderDashboard(data);
       
       showLoading(false);
@@ -69,7 +58,6 @@ const App = (() => {
     await loadAllData();
   }
   
-  // ---------- DASHBOARD ----------
   function renderDashboard(data) {
     const stats = data.stats || {};
     updateStats(stats);
@@ -81,39 +69,12 @@ const App = (() => {
     renderBudgetList(state.categoryStats, state.currentBudgetFilter);
     
     Charts.renderWeekly(data.weeklyBreakdown || []);
-    Charts.renderCategory(data.categoryStats || []);
+    Charts.renderCategory(state.categoryStats || []);
     Charts.renderPayment(data.paymentStats || []);
     Charts.renderTrend(data.dailyBreakdown || {});
     
     document.getElementById('lastUpdate').textContent =
       new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.';
-  }
-  
-  async function loadDashboard() {
-    // ถ้ามีข้อมูลครบแล้วใช้เลย ไม่ต้องยิง API ซ้ำ
-    if (state.categoryStats.length && state.budgetSummary) {
-      return; // ใช้ข้อมูลที่มีอยู่
-    }
-    
-    showLoading(true);
-    try {
-      const data = await API.getDashboardStats();
-      state.budgetSummary = data.budgetSummary || {};
-      state.categoryStats = data.categoryStats || [];
-      
-      updateStats(data.stats || {});
-      renderBudgetSummary(state.budgetSummary);
-      renderBudgetList(state.categoryStats, state.currentBudgetFilter);
-      Charts.renderWeekly(data.weeklyBreakdown || []);
-      Charts.renderCategory(state.categoryStats);
-      Charts.renderPayment(data.paymentStats || []);
-      Charts.renderTrend(data.dailyBreakdown || {});
-      
-      showLoading(false);
-    } catch (err) {
-      showLoading(false);
-      toast('โหลด Dashboard ไม่ได้: ' + err.message, 'danger');
-    }
   }
   
   function updateStats(stats) {
@@ -137,7 +98,6 @@ const App = (() => {
     else el.innerHTML = `<span class="badge-pill neutral"><span class="arrow">−</span> 0%</span>`;
   }
   
-  // ---------- BUDGET ----------
   function renderBudgetSummary(summary) {
     const container = document.getElementById('budgetSummaryBar');
     if (!container || !summary) return;
@@ -185,9 +145,9 @@ const App = (() => {
     container.innerHTML = list.map(cat => {
       const pct = Math.min(cat.percentUsed, 100);
       const display = cat.percentUsed.toFixed(1);
-      let status = 'ok', bar = 'linear-gradient(90deg, #B5EAD7, #8DD5BA)';
-      if (cat.percentUsed >= 90) { status = 'danger'; bar = 'linear-gradient(90deg, #FFAAA5, #FF7F7B)'; }
-      else if (cat.percentUsed >= 70) { status = 'warning'; bar = 'linear-gradient(90deg, #FFF1A8, #FFD066)'; }
+      let status = 'ok', bar = 'linear-gradient(90deg, #4FE8B5, #4FD9E8)';
+      if (cat.percentUsed >= 90) { status = 'danger'; bar = 'linear-gradient(90deg, #FF5C7A, #FF6FB5)'; }
+      else if (cat.percentUsed >= 70) { status = 'warning'; bar = 'linear-gradient(90deg, #FFD966, #FF9B5C)'; }
       
       const match = cat.name.match(/^(\p{Emoji_Presentation}|\p{Extended_Pictographic})\s*(.*)$/u);
       const emoji = match ? match[1] : '📁';
@@ -220,7 +180,6 @@ const App = (() => {
     }).join('');
   }
   
-  // ---------- PAGE ----------
   function switchPage(page) {
     if (page === state.currentPage && page !== 'dashboard') return;
     
@@ -238,19 +197,17 @@ const App = (() => {
     window.scrollTo(0, 0);
   }
   
-  // ---------- HISTORY ----------
   async function loadHistory() {
     const startEl = document.getElementById('filterStart');
     const endEl = document.getElementById('filterEnd');
     
     if (!startEl.value && !endEl.value) {
       const today = new Date();
-      const weekAgo = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000);
+      const weekAgo = new Date(today.getTime() - 6 * 86400000);
       startEl.value = fmtDate(weekAgo);
       endEl.value = fmtDate(today);
     }
     
-    showLoading(true);
     try {
       const txs = await API.getTransactions({
         startDate: startEl.value,
@@ -258,9 +215,7 @@ const App = (() => {
         category: document.getElementById('filterCategory').value
       });
       renderHistory(txs || []);
-      showLoading(false);
     } catch (err) {
-      showLoading(false);
       toast('โหลดรายการไม่ได้: ' + err.message, 'danger');
       renderHistory([]);
     }
@@ -309,12 +264,12 @@ const App = (() => {
       
       html += `<div class="mb-3">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="fw-bold" style="color:#9A8A9E;font-size:0.8rem;">📅 ${dateStr}</span>
+          <span class="fw-bold" style="font-size:0.8rem;">📅 ${dateStr}</span>
           <span class="badge bg-danger">฿${dayTotal.toLocaleString()}</span>
         </div>`;
       
       grouped[date].forEach(t => {
-        const cat = state.categories.find(c => c.id === t.category) || { name: 'ไม่ระบุ', color: '#B0A0B5' };
+        const cat = state.categories.find(c => c.id === t.category) || { name: 'ไม่ระบุ', color: '#7A6B9A' };
         const pay = state.paymentTypes.find(p => p.id === t.paymentType) || { name: 'ไม่ระบุ', icon: 'fa-wallet' };
         html += `<div class="transaction-item">
           <div class="transaction-icon" style="background: linear-gradient(135deg, ${cat.color}, ${shade(cat.color, -15)});">
@@ -338,7 +293,6 @@ const App = (() => {
     container.innerHTML = html;
   }
   
-  // ---------- FORM ----------
   async function handleFormSubmit(e) {
     e.preventDefault();
     const id = document.getElementById('txId').value;
@@ -375,7 +329,6 @@ const App = (() => {
   }
   
   async function editTransaction(id) {
-    showLoading(true);
     try {
       const txs = await API.getTransactions({});
       const t = txs.find(x => x.id === id);
@@ -389,9 +342,7 @@ const App = (() => {
         switchPage('daily');
         document.querySelector('#transactionForm button[type="submit"]').innerHTML = '<i class="fas fa-save me-2"></i>อัปเดต';
       }
-      showLoading(false);
     } catch (err) {
-      showLoading(false);
       toast('โหลดไม่ได้: ' + err.message, 'danger');
     }
   }
@@ -403,6 +354,7 @@ const App = (() => {
       await API.deleteTransaction(id);
       showLoading(false);
       toast('🗑️ ลบสำเร็จ', 'success');
+      await refresh();
       loadHistory();
     } catch (err) {
       showLoading(false);
@@ -417,7 +369,6 @@ const App = (() => {
     document.querySelector('#transactionForm button[type="submit"]').innerHTML = '<i class="fas fa-save me-2"></i>บันทึก';
   }
   
-  // ---------- SETTINGS ----------
   function loadSettingsLists() {
     renderCategorySettings();
     renderPaymentSettings();
@@ -428,7 +379,7 @@ const App = (() => {
     const c = document.getElementById('categorySettingsList');
     if (!c) return;
     c.innerHTML = state.categories.length ? state.categories.map(cat => `
-      <div class="d-flex align-items-center justify-content-between p-3 mb-2" style="background:rgba(255,255,255,0.9);border-radius:16px;border-left:4px solid ${cat.color};box-shadow:0 2px 8px rgba(255,143,184,0.08);">
+      <div class="d-flex align-items-center justify-content-between p-3 mb-2" style="border-radius:16px;border-left:4px solid ${cat.color};">
         <div class="d-flex align-items-center gap-2">
           <div style="width:28px;height:28px;border-radius:8px;background:${cat.color};"></div>
           <span class="fw-bold">${cat.name}</span>
@@ -445,7 +396,7 @@ const App = (() => {
     const c = document.getElementById('paymentSettingsList');
     if (!c) return;
     c.innerHTML = state.paymentTypes.length ? state.paymentTypes.map(p => `
-      <div class="d-flex align-items-center justify-content-between p-3 mb-2" style="background:rgba(255,255,255,0.9);border-radius:16px;border-left:4px solid ${p.color};box-shadow:0 2px 8px rgba(255,143,184,0.08);">
+      <div class="d-flex align-items-center justify-content-between p-3 mb-2" style="border-radius:16px;border-left:4px solid ${p.color};">
         <div class="d-flex align-items-center gap-2">
           <div style="width:34px;height:34px;border-radius:10px;background:${p.color};display:flex;align-items:center;justify-content:center;color:white;">
             <i class="fas ${p.icon}"></i>
@@ -466,25 +417,24 @@ const App = (() => {
     c.innerHTML = state.categories.map(cat => {
       const b = state.budgets.find(x => x.categoryId === cat.id);
       const limit = b ? b.monthlyLimit : 0;
-      return `<div class="d-flex align-items-center justify-content-between p-3 mb-2" style="background:rgba(255,255,255,0.9);border-radius:16px;box-shadow:0 2px 8px rgba(255,143,184,0.08);">
+      return `<div class="d-flex align-items-center justify-content-between p-3 mb-2" style="border-radius:16px;">
         <div class="d-flex align-items-center gap-2">
           <div style="width:28px;height:28px;border-radius:8px;background:${cat.color};"></div>
           <span class="fw-bold">${cat.name}</span>
         </div>
         <div class="d-flex align-items-center gap-2">
-          <span style="color:#9A8A9E;font-size:0.85rem;font-weight:600;">${limit > 0 ? fmt(limit) : 'ไม่กำหนด'}</span>
+          <span style="color:var(--text-muted);font-size:0.85rem;font-weight:600;">${limit > 0 ? fmt(limit) : 'ไม่กำหนด'}</span>
           <button class="btn btn-sm btn-outline-info" onclick="App.editBudget('${cat.id}', '${cat.name.replace(/'/g, "\\'")}', ${limit})"><i class="fas fa-cog"></i></button>
         </div>
       </div>`;
     }).join('');
   }
   
-  // ---------- MODALS ----------
   function openCategoryModal(id) {
     document.getElementById('categoryModalTitle').textContent = id ? '✏️ แก้ไขหมวดหมู่' : '➕ เพิ่มหมวดหมู่';
     document.getElementById('catEditId').value = id || '';
     document.getElementById('catName').value = '';
-    document.getElementById('catColor').value = '#FFB6D9';
+    document.getElementById('catColor').value = '#FF6FB5';
     if (id) {
       const cat = state.categories.find(x => x.id === id);
       if (cat) { document.getElementById('catName').value = cat.name; document.getElementById('catColor').value = cat.color; }
@@ -499,7 +449,8 @@ const App = (() => {
     
     showLoading(true);
     try {
-      const r = id ? await API.updateCategory(id, data) : await API.addCategory(data);
+      if (id) await API.updateCategory(id, data);
+      else await API.addCategory(data);
       showLoading(false);
       modals.category.hide();
       toast('✨ บันทึกสำเร็จ', 'success');
@@ -529,7 +480,7 @@ const App = (() => {
     document.getElementById('payEditId').value = id || '';
     document.getElementById('payName').value = '';
     document.getElementById('payIcon').value = 'fa-wallet';
-    document.getElementById('payColor').value = '#B8A5D0';
+    document.getElementById('payColor').value = '#A47BFF';
     if (id) {
       const p = state.paymentTypes.find(x => x.id === id);
       if (p) { document.getElementById('payName').value = p.name; document.getElementById('payIcon').value = p.icon; document.getElementById('payColor').value = p.color; }
@@ -547,7 +498,8 @@ const App = (() => {
     if (!data.name) { toast('กรอกชื่อประเภท', 'warning'); return; }
     showLoading(true);
     try {
-      id ? await API.updatePaymentType(id, data) : await API.addPaymentType(data);
+      if (id) await API.updatePaymentType(id, data);
+      else await API.addPaymentType(data);
       showLoading(false);
       modals.payment.hide();
       toast('✨ บันทึกสำเร็จ', 'success');
@@ -600,7 +552,6 @@ const App = (() => {
     }
   }
   
-  // ---------- UTILS ----------
   function populateDropdowns() {
     ['txCategory', 'filterCategory'].forEach(id => {
       const sel = document.getElementById(id);
@@ -651,7 +602,6 @@ const App = (() => {
     el.addEventListener('hidden.bs.toast', () => el.remove());
   }
   
-  // Public API
   return {
     init, refresh, switchPage, loadHistory, setHistoryRange, setBudgetFilter,
     handleFormSubmit, editTransaction, confirmDelete, resetForm,
@@ -661,5 +611,4 @@ const App = (() => {
   };
 })();
 
-// Start
 document.addEventListener('DOMContentLoaded', App.init);
