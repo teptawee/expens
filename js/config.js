@@ -2,14 +2,12 @@
 // ⚙️ CONFIG - แก้ไขตรงนี้เท่านั้น
 // ============================================
 const CONFIG = {
-  // 🔥 ใส่ Web App URL จาก Apps Script ที่นี่
+  // 🔥 ใส่ Web App URL จาก Apps Script ที่นี่ (ต้องลงท้ายด้วย /exec)
   API_URL: 'https://script.google.com/macros/s/AKfycbwNU4At02y8CJf-7ebpMfrP_osOuQ_ZiUaHj2noD8r_5XxLw5vKlNPHAkjDRBzC3owSTg/exec',
   
-  // ตั้งค่าเริ่มต้น
-  CACHE_TTL: 60000,        // แคช 60 วินาที
+  CACHE_TTL: 60000,
   CURRENCY: '฿',
   
-  // สี Pastel
   COLORS: {
     pink: '#FFB6D9', pinkDark: '#FF8FB8',
     blue: '#A8D8FF', blueDark: '#7CB8F0',
