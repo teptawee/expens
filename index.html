@@ -1,13 +1,209 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <base target="_top">
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบบันทึกค่าใช้จ่าย-01</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>💰 ระบบบันทึกค่าใช้จ่าย</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
 </head>
 <body>
-    <iframe style="width: 100%; height: 100vh;" scrolling="yes" src="https://script.google.com/macros/s/AKfycbwNU4At02y8CJf-7ebpMfrP_osOuQ_ZiUaHj2noD8r_5XxLw5vKlNPHAkjDRBzC3owSTg/exec" frameborder="0"></iframe>
+
+<!-- Loading -->
+<div class="loading-overlay" id="loading">
+  <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
+</div>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg fixed-top">
+  <div class="container-fluid">
+    <span class="navbar-brand"><i class="fas fa-wallet"></i>ระบบบันทึกค่าใช้จ่าย</span>
+  </div>
+</nav>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <a href="#" class="bottom-nav-item active" data-page="dashboard"><i class="fas fa-chart-pie"></i><span>ภาพรวม</span></a>
+  <a href="#" class="bottom-nav-item" data-page="daily"><i class="fas fa-plus-circle"></i><span>บันทึก</span></a>
+  <a href="#" class="bottom-nav-item" data-page="history"><i class="fas fa-list-ul"></i><span>รายการ</span></a>
+  <a href="#" class="bottom-nav-item" data-page="settings"><i class="fas fa-cog"></i><span>ตั้งค่า</span></a>
+</nav>
+
+<div class="container-fluid px-3 px-md-4">
+
+  <!-- ============ DASHBOARD ============ -->
+  <div class="page-section active" id="page-dashboard">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h5 class="mb-0" style="color: var(--dark); font-weight: 700;">
+          <i class="fas fa-chart-pie me-2" style="color: var(--pastel-pink-dark);"></i>ภาพรวมการเงิน
+        </h5>
+        <small style="color: #9A8A9E;">อัปเดตล่าสุด: <span id="lastUpdate">-</span></small>
+      </div>
+      <button class="btn-refresh" onclick="App.refresh()"><i class="fas fa-sync-alt me-1"></i> รีเฟรช</button>
+    </div>
+    
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3">
+        <div class="stat-card-new" style="background: linear-gradient(135deg, #FFF0F6, #FFE4F0);">
+          <div class="stat-new-header"><span class="stat-new-emoji">📅</span><span class="stat-new-label">วันนี้</span></div>
+          <div class="stat-new-value"><span id="statToday">0</span><span class="stat-new-unit">บาท</span></div>
+          <div class="stat-new-badge" id="statTodayChange"><span class="badge-pill neutral">-</span></div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card-new" style="background: linear-gradient(135deg, #F0F8FF, #E4F0FF);">
+          <div class="stat-new-header"><span class="stat-new-emoji">📅</span><span class="stat-new-label">สัปดาห์นี้</span></div>
+          <div class="stat-new-value"><span id="statWeek">0</span><span class="stat-new-unit">บาท</span></div>
+          <div class="stat-new-badge" id="statWeekChange"><span class="badge-pill neutral">-</span></div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card-new" style="background: linear-gradient(135deg, #F0FFFA, #E0F7EC);">
+          <div class="stat-new-header"><span class="stat-new-emoji">📅</span><span class="stat-new-label">เดือนนี้</span></div>
+          <div class="stat-new-value"><span id="statMonth">0</span><span class="stat-new-unit">บาท</span></div>
+          <div class="stat-new-badge" id="statMonthChange"><span class="badge-pill neutral">-</span></div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card-new" style="background: linear-gradient(135deg, #FFF8F0, #FFEEDD);">
+          <div class="stat-new-header"><span class="stat-new-emoji">📈</span><span class="stat-new-label">เฉลี่ย/วัน</span></div>
+          <div class="stat-new-value"><span id="statDailyAvg">0</span><span class="stat-new-unit">บาท</span></div>
+          <div class="stat-new-estimate" id="statEstimate">คาดการณ์สิ้นเดือน ~0 ฿</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="chart-container mb-4">
+      <div class="chart-title"><i class="fas fa-piggy-bank"></i> สถานะวงเงินคงเหลือ</div>
+      <div class="budget-summary-bar" id="budgetSummaryBar"></div>
+      <div class="budget-filter-chips" id="budgetFilters">
+        <button class="filter-chip active" data-filter="all" onclick="App.setBudgetFilter('all')"><i class="fas fa-list"></i> ทั้งหมด</button>
+        <button class="filter-chip" data-filter="warning" onclick="App.setBudgetFilter('warning')"><i class="fas fa-exclamation-triangle"></i> ใกล้เต็ม</button>
+        <button class="filter-chip" data-filter="danger" onclick="App.setBudgetFilter('danger')"><i class="fas fa-fire"></i> เกินงบ</button>
+      </div>
+      <div class="budget-grid" id="budgetList"></div>
+    </div>
+    
+    <div class="row g-4 mb-4">
+      <div class="col-12 col-lg-6"><div class="chart-container"><div class="chart-title"><i class="fas fa-chart-bar"></i> ค่าใช้จ่าย 7 วันล่าสุด</div><div class="chart-wrapper"><canvas id="weeklyChart"></canvas></div></div></div>
+      <div class="col-12 col-lg-6"><div class="chart-container"><div class="chart-title"><i class="fas fa-chart-pie"></i> สัดส่วนตามหมวดหมู่</div><div class="chart-wrapper"><canvas id="categoryChart"></canvas></div></div></div>
+    </div>
+    <div class="row g-4 mb-4">
+      <div class="col-12 col-lg-6"><div class="chart-container"><div class="chart-title"><i class="fas fa-credit-card"></i> ประเภทการชำระเงิน</div><div class="chart-wrapper"><canvas id="paymentChart"></canvas></div></div></div>
+      <div class="col-12 col-lg-6"><div class="chart-container"><div class="chart-title"><i class="fas fa-chart-line"></i> แนวโน้มรายจ่ายรายวัน</div><div class="chart-wrapper"><canvas id="trendChart"></canvas></div></div></div>
+    </div>
+  </div>
+
+  <!-- ============ DAILY ============ -->
+  <div class="page-section" id="page-daily">
+    <div class="chart-container">
+      <div class="chart-title"><i class="fas fa-plus-circle"></i> บันทึกค่าใช้จ่าย</div>
+      <form id="transactionForm">
+        <input type="hidden" id="txId">
+        <div class="mb-3"><label class="form-label">📅 วันที่</label><input type="date" class="form-control" id="txDate" required></div>
+        <div class="mb-3"><label class="form-label">🏷️ หมวดหมู่</label><select class="form-select" id="txCategory" required><option value="">-- เลือกหมวดหมู่ --</option></select></div>
+        <div class="mb-3"><label class="form-label">💳 ประเภทการชำระเงิน</label><select class="form-select" id="txPayment" required><option value="">-- เลือกประเภท --</option></select></div>
+        <div class="mb-3"><label class="form-label">💰 จำนวนเงิน (฿)</label><input type="number" class="form-control" id="txAmount" step="0.01" min="0" required placeholder="0.00"></div>
+        <div class="mb-3"><label class="form-label">📝 หมายเหตุ</label><textarea class="form-control" id="txNote" rows="2" placeholder="รายละเอียดเพิ่มเติม..."></textarea></div>
+        <div class="d-grid gap-2">
+          <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-save me-2"></i>บันทึก</button>
+          <button type="button" class="btn btn-outline-secondary" onclick="App.resetForm()"><i class="fas fa-redo me-2"></i>ล้างฟอร์ม</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ HISTORY ============ -->
+  <div class="page-section" id="page-history">
+    <div class="chart-container">
+      <div class="chart-title"><i class="fas fa-list-ul"></i> รายการทั้งหมด</div>
+      <div class="budget-filter-chips mb-3">
+        <button class="filter-chip active" data-range="7days" onclick="App.setHistoryRange('7days')"><i class="fas fa-calendar-week"></i> 7 วันล่าสุด</button>
+        <button class="filter-chip" data-range="30days" onclick="App.setHistoryRange('30days')"><i class="fas fa-calendar-alt"></i> 30 วัน</button>
+        <button class="filter-chip" data-range="all" onclick="App.setHistoryRange('all')"><i class="fas fa-list"></i> ทั้งหมด</button>
+      </div>
+      <div class="row g-2 mb-3">
+        <div class="col-6 col-md-3"><input type="date" class="form-control form-control-sm" id="filterStart"></div>
+        <div class="col-6 col-md-3"><input type="date" class="form-control form-control-sm" id="filterEnd"></div>
+        <div class="col-6 col-md-3"><select class="form-select form-select-sm" id="filterCategory"><option value="all">ทุกหมวดหมู่</option></select></div>
+        <div class="col-6 col-md-3"><button class="btn btn-primary btn-sm w-100" onclick="App.loadHistory()"><i class="fas fa-search me-1"></i>ค้นหา</button></div>
+      </div>
+      <div id="historyList"></div>
+    </div>
+  </div>
+
+  <!-- ============ SETTINGS ============ -->
+  <div class="page-section" id="page-settings">
+    <div class="chart-container mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="chart-title mb-0"><i class="fas fa-tags"></i> หมวดหมู่</div>
+        <button class="btn btn-success btn-sm" onclick="App.openCategoryModal()"><i class="fas fa-plus me-1"></i>เพิ่ม</button>
+      </div>
+      <div id="categorySettingsList"></div>
+    </div>
+    <div class="chart-container mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="chart-title mb-0"><i class="fas fa-credit-card"></i> ประเภทการชำระเงิน</div>
+        <button class="btn btn-warning btn-sm" onclick="App.openPaymentModal()"><i class="fas fa-plus me-1"></i>เพิ่ม</button>
+      </div>
+      <div id="paymentSettingsList"></div>
+    </div>
+    <div class="chart-container mb-4">
+      <div class="chart-title"><i class="fas fa-piggy-bank"></i> ตั้งวงเงินรายเดือน</div>
+      <div id="budgetSettingsList"></div>
+    </div>
+  </div>
+
+</div>
+
+<button class="btn-float" onclick="App.switchPage('daily')"><i class="fas fa-plus"></i></button>
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Modals -->
+<div class="modal fade" id="categoryModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+  <div class="modal-header border-0"><h5 class="modal-title" id="categoryModalTitle">เพิ่มหมวดหมู่</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <input type="hidden" id="catEditId">
+    <div class="mb-3"><label class="form-label">🏷️ ชื่อหมวดหมู่</label><input type="text" class="form-control" id="catName" required></div>
+    <div class="mb-3"><label class="form-label">🎨 สี</label><input type="color" class="form-control form-control-color w-100" id="catColor" value="#FFB6D9"></div>
+  </div>
+  <div class="modal-footer border-0"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button><button type="button" class="btn btn-primary" onclick="App.saveCategory()">บันทึก</button></div>
+</div></div></div>
+
+<div class="modal fade" id="paymentModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+  <div class="modal-header border-0"><h5 class="modal-title" id="paymentModalTitle">เพิ่มประเภทการชำระเงิน</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <input type="hidden" id="payEditId">
+    <div class="mb-3"><label class="form-label">💳 ชื่อประเภท</label><input type="text" class="form-control" id="payName" required></div>
+    <div class="mb-3"><label class="form-label">✨ ไอคอน (FA class)</label><input type="text" class="form-control" id="payIcon" placeholder="fa-wallet" value="fa-wallet"></div>
+    <div class="mb-3"><label class="form-label">🎨 สี</label><input type="color" class="form-control form-control-color w-100" id="payColor" value="#B8A5D0"></div>
+  </div>
+  <div class="modal-footer border-0"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button><button type="button" class="btn btn-primary" onclick="App.savePayment()">บันทึก</button></div>
+</div></div></div>
+
+<div class="modal fade" id="budgetModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+  <div class="modal-header border-0"><h5 class="modal-title"><i class="fas fa-piggy-bank me-2" style="color: var(--pastel-pink-dark);"></i>ตั้งวงเงิน</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <input type="hidden" id="budgetCatId">
+    <div class="mb-3"><label class="form-label">🏷️ หมวดหมู่</label><input type="text" class="form-control" id="budgetCatName" readonly style="background: #F5F0F7; font-weight: 700;"></div>
+    <div class="mb-3"><label class="form-label">💰 วงเงินรายเดือน (฿)</label><input type="number" class="form-control" id="budgetLimit" step="100" min="0" required placeholder="0"></div>
+    <div class="mb-3"><label class="form-label">🔔 แจ้งเตือนเมื่อใช้ถึง (%)</label><input type="number" class="form-control" id="budgetAlert" min="1" max="100" value="80"></div>
+  </div>
+  <div class="modal-footer border-0"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button><button type="button" class="btn btn-primary" onclick="App.saveBudget()"><i class="fas fa-save me-1"></i>บันทึก</button></div>
+</div></div></div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
