@@ -1,36 +1,39 @@
 // ============================================
 // 📊 CHARTS
 // ============================================
-const Charts = (() => {
-  let instances = {};
-  
-  const baseOpts = {
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: { duration: 600, easing: 'easeOutQuart' },
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          padding: 12, usePointStyle: true,
-          font: { family: 'Prompt, Sarabun, sans-serif', size: 11, weight: '600' },
-          color: '#5A4A5C'
-        }
-      },
-      tooltip: {
-        backgroundColor: 'rgba(255,255,255,0.98)', titleColor: '#5A4A5C', bodyColor: '#5A4A5C',
-        borderColor: '#FFB6D9', borderWidth: 2, padding: 12, cornerRadius: 12,
-        titleFont: { family: 'Prompt, sans-serif', size: 12, weight: '700' },
-        bodyFont: { family: 'Prompt, sans-serif', size: 12 },
-        callbacks: {
-          label: ctx => {
-            const v = ctx.parsed.y ?? ctx.parsed ?? 0;
-            return (ctx.dataset.label || ctx.label || '') + ': ฿' + v.toLocaleString();
-          }
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  animation: { duration: 600, easing: 'easeOutQuart' },
+  plugins: {
+    legend: {
+      position: 'bottom',
+      labels: {
+        padding: 12,
+        usePointStyle: true,
+        font: { family: 'Prompt, Sarabun, sans-serif', size: 11, weight: '600' },
+        color: '#B8A8D9'  // ✅ ม่วงอ่อน
+      }
+    },
+    tooltip: {
+      backgroundColor: 'rgba(26, 20, 48, 0.98)',
+      titleColor: '#F5F0FF',
+      bodyColor: '#B8A8D9',
+      borderColor: '#FF6FB5',
+      borderWidth: 2,
+      padding: 12,
+      cornerRadius: 12,
+      titleFont: { family: 'Prompt, sans-serif', size: 12, weight: '700' },
+      bodyFont: { family: 'Prompt, sans-serif', size: 12 },
+      callbacks: {
+        label: function(context) {
+          const value = context.parsed.y ?? context.parsed ?? 0;
+          return (context.dataset.label || context.label || '') + ': ฿' + value.toLocaleString();
         }
       }
     }
-  };
+  }
+};
   
   function destroy(key) {
     if (instances[key]) {
