@@ -45,36 +45,78 @@
       <button class="btn-refresh" onclick="App.refresh()"><i class="fas fa-sync-alt me-1"></i> รีเฟรช</button>
     </div>
     
-    <div class="row g-3 mb-4">
-      <div class="col-6 col-md-3">
-        <div class="stat-card-new" style="background: linear-gradient(135deg, #FFF0F6, #FFE4F0);">
-          <div class="stat-new-header"><span class="stat-new-emoji">📅</span><span class="stat-new-label">วันนี้</span></div>
-          <div class="stat-new-value"><span id="statToday">0</span><span class="stat-new-unit">บาท</span></div>
-          <div class="stat-new-badge" id="statTodayChange"><span class="badge-pill neutral">-</span></div>
-        </div>
+   <!-- ✅ Stats Cards แบบใหม่ -->
+<div class="row g-3 mb-4">
+  
+  <!-- วันนี้ -->
+  <div class="col-6 col-md-3">
+    <div class="stat-card-new stat-card-1">
+      <div class="stat-new-header">
+        <span class="stat-new-emoji">📅</span>
+        <span class="stat-new-label">วันนี้</span>
       </div>
-      <div class="col-6 col-md-3">
-        <div class="stat-card-new" style="background: linear-gradient(135deg, #F0F8FF, #E4F0FF);">
-          <div class="stat-new-header"><span class="stat-new-emoji">📅</span><span class="stat-new-label">สัปดาห์นี้</span></div>
-          <div class="stat-new-value"><span id="statWeek">0</span><span class="stat-new-unit">บาท</span></div>
-          <div class="stat-new-badge" id="statWeekChange"><span class="badge-pill neutral">-</span></div>
-        </div>
+      <div class="stat-new-value">
+        <span id="statToday">0</span>
+        <span class="stat-new-unit">บาท</span>
       </div>
-      <div class="col-6 col-md-3">
-        <div class="stat-card-new" style="background: linear-gradient(135deg, #F0FFFA, #E0F7EC);">
-          <div class="stat-new-header"><span class="stat-new-emoji">📅</span><span class="stat-new-label">เดือนนี้</span></div>
-          <div class="stat-new-value"><span id="statMonth">0</span><span class="stat-new-unit">บาท</span></div>
-          <div class="stat-new-badge" id="statMonthChange"><span class="badge-pill neutral">-</span></div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="stat-card-new" style="background: linear-gradient(135deg, #FFF8F0, #FFEEDD);">
-          <div class="stat-new-header"><span class="stat-new-emoji">📈</span><span class="stat-new-label">เฉลี่ย/วัน</span></div>
-          <div class="stat-new-value"><span id="statDailyAvg">0</span><span class="stat-new-unit">บาท</span></div>
-          <div class="stat-new-estimate" id="statEstimate">คาดการณ์สิ้นเดือน ~0 ฿</div>
-        </div>
+      <div class="stat-new-badge" id="statTodayChange">
+        <span class="badge-pill neutral">-</span>
       </div>
     </div>
+  </div>
+  
+  <!-- สัปดาห์นี้ -->
+  <div class="col-6 col-md-3">
+    <div class="stat-card-new stat-card-2">
+      <div class="stat-new-header">
+        <span class="stat-new-emoji">📅</span>
+        <span class="stat-new-label">สัปดาห์นี้</span>
+      </div>
+      <div class="stat-new-value">
+        <span id="statWeek">0</span>
+        <span class="stat-new-unit">บาท</span>
+      </div>
+      <div class="stat-new-badge" id="statWeekChange">
+        <span class="badge-pill neutral">-</span>
+      </div>
+    </div>
+  </div>
+  
+  <!-- เดือนนี้ -->
+  <div class="col-6 col-md-3">
+    <div class="stat-card-new stat-card-3">
+      <div class="stat-new-header">
+        <span class="stat-new-emoji">📅</span>
+        <span class="stat-new-label">เดือนนี้</span>
+      </div>
+      <div class="stat-new-value">
+        <span id="statMonth">0</span>
+        <span class="stat-new-unit">บาท</span>
+      </div>
+      <div class="stat-new-badge" id="statMonthChange">
+        <span class="badge-pill neutral">-</span>
+      </div>
+    </div>
+  </div>
+  
+  <!-- เฉลี่ย/วัน -->
+  <div class="col-6 col-md-3">
+    <div class="stat-card-new stat-card-4">
+      <div class="stat-new-header">
+        <span class="stat-new-emoji">📈</span>
+        <span class="stat-new-label">เฉลี่ย/วัน</span>
+      </div>
+      <div class="stat-new-value">
+        <span id="statDailyAvg">0</span>
+        <span class="stat-new-unit">บาท</span>
+      </div>
+      <div class="stat-new-estimate" id="statEstimate">
+        คาดการณ์สิ้นเดือน ~0 ฿
+      </div>
+    </div>
+  </div>
+  
+</div>
     
     <div class="chart-container mb-4">
       <div class="chart-title"><i class="fas fa-piggy-bank"></i> สถานะวงเงินคงเหลือ</div>
