@@ -1,5 +1,5 @@
 // ============================================
-// 📊 CHARTS - Glassmorphism Garnier Theme
+// 📊 CHARTS - Glassmorphism LIGHT (Garnier)
 // ============================================
 var Charts = (function () {
   var instances = {};
@@ -15,14 +15,14 @@ var Charts = (function () {
           padding: 12,
           usePointStyle: true,
           font: { family: 'Prompt, Sarabun, sans-serif', size: 11, weight: '600' },
-          color: '#E8D5C4'
+          color: '#6B5478'
         }
       },
       tooltip: {
-        backgroundColor: 'rgba(45, 27, 61, 0.95)',
-        titleColor: '#FDF8F0',
-        bodyColor: '#E8D5C4',
-        borderColor: '#E8A598',
+        backgroundColor: 'rgba(255, 255, 255, 0.98)',
+        titleColor: '#3D2A52',
+        bodyColor: '#6B5478',
+        borderColor: '#D99888',
         borderWidth: 2,
         padding: 14,
         cornerRadius: 14,
@@ -59,7 +59,7 @@ var Charts = (function () {
       return;
     }
 
-    var colors = ['#E8A598', '#8B5FA8', '#9BAE7C', '#E5C9A0', '#D4647E', '#C4785A', '#F5C6BB'];
+    var colors = ['#D99888', '#7B5A9E', '#8B9E6C', '#D4B88C', '#C9647E', '#C4785A', '#E8B5A8'];
     var max = Math.max.apply(null, data.map(function (d) { return d.amount; }).concat([1]));
 
     instances.weekly = new Chart(canvas, {
@@ -87,18 +87,18 @@ var Charts = (function () {
           y: {
             beginAtZero: true,
             suggestedMax: max * 1.2,
-            grid: { color: 'rgba(232, 165, 152, 0.12)', drawBorder: false },
+            grid: { color: 'rgba(123, 90, 158, 0.1)', drawBorder: false },
             ticks: {
               callback: function (v) { return '฿' + v.toLocaleString(); },
               font: { family: 'Prompt', size: 10 },
-              color: '#A88B9C'
+              color: '#9B8AA8'
             }
           },
           x: {
             grid: { display: false },
             ticks: {
               font: { family: 'Prompt', size: 11, weight: '600' },
-              color: '#E8D5C4'
+              color: '#6B5478'
             }
           }
         }
@@ -127,7 +127,7 @@ var Charts = (function () {
             return d.color || CONFIG.CHART_COLORS[i % CONFIG.CHART_COLORS.length];
           }),
           borderWidth: 3,
-          borderColor: '#2D1B3D',
+          borderColor: '#FAF5F0',
           hoverOffset: 8
         }]
       },
@@ -164,7 +164,7 @@ var Charts = (function () {
             return d.color || CONFIG.CHART_COLORS[i % CONFIG.CHART_COLORS.length];
           }),
           borderWidth: 3,
-          borderColor: '#2D1B3D',
+          borderColor: '#FAF5F0',
           hoverOffset: 8
         }]
       },
@@ -199,8 +199,8 @@ var Charts = (function () {
     var values = dates.map(function (d) { return dailyData[d]; });
 
     var gradient = canvas.getContext('2d').createLinearGradient(0, 0, 0, 250);
-    gradient.addColorStop(0, 'rgba(232, 165, 152, 0.4)');
-    gradient.addColorStop(1, 'rgba(91, 58, 126, 0.02)');
+    gradient.addColorStop(0, 'rgba(217, 152, 136, 0.35)');
+    gradient.addColorStop(1, 'rgba(123, 90, 158, 0.02)');
 
     instances.trend = new Chart(canvas, {
       type: 'line',
@@ -209,16 +209,16 @@ var Charts = (function () {
         datasets: [{
           label: 'ค่าใช้จ่าย (฿)',
           data: values,
-          borderColor: '#E8A598',
+          borderColor: '#D99888',
           backgroundColor: gradient,
           fill: true,
           tension: 0.4,
           pointRadius: 5,
-          pointBackgroundColor: '#E8A598',
-          pointBorderColor: '#2D1B3D',
+          pointBackgroundColor: '#D99888',
+          pointBorderColor: '#FAF5F0',
           pointBorderWidth: 2,
           pointHoverRadius: 7,
-          pointHoverBackgroundColor: '#F5C6BB'
+          pointHoverBackgroundColor: '#C4785A'
         }]
       },
       options: {
@@ -232,18 +232,18 @@ var Charts = (function () {
         scales: {
           y: {
             beginAtZero: true,
-            grid: { color: 'rgba(232, 165, 152, 0.12)', drawBorder: false },
+            grid: { color: 'rgba(123, 90, 158, 0.1)', drawBorder: false },
             ticks: {
               callback: function (v) { return '฿' + v.toLocaleString(); },
               font: { family: 'Prompt', size: 10 },
-              color: '#A88B9C'
+              color: '#9B8AA8'
             }
           },
           x: {
             grid: { display: false },
             ticks: {
               font: { family: 'Prompt', size: 10, weight: '600' },
-              color: '#E8D5C4'
+              color: '#6B5478'
             }
           }
         }
