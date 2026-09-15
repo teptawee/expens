@@ -4,7 +4,6 @@
 const API = (() => {
   const CALLBACK_PREFIX = 'gsCb_' + Date.now() + '_';
   
-  // ✅ JSONP request
   function jsonp(params, timeout = 30000) {
     return new Promise((resolve, reject) => {
       const cbName = CALLBACK_PREFIX + Math.floor(Math.random() * 1e9);
@@ -39,12 +38,10 @@ const API = (() => {
     });
   }
   
-  // ✅ Memory cache สำหรับ full data
   let fullDataCache = null;
   let fullDataTime = 0;
   
   return {
-    // ✅ โหลดครั้งเดียว ใช้ได้ทุกหน้า (cache 5 นาที)
     getFullData: async (force = false) => {
       const now = Date.now();
       if (!force && fullDataCache && (now - fullDataTime) < CONFIG.CACHE_TTL) {
@@ -55,7 +52,6 @@ const API = (() => {
       return fullDataCache;
     },
     
-    // ✅ getTransactions กรองจาก full data ใน memory
     getTransactions: async (filters = {}) => {
       const full = await API.getFullData();
       let txs = full.transactions || [];
@@ -73,6 +69,7 @@ const API = (() => {
     },
     
     getInitialData: () => jsonp({ action: 'getInitialData' }),
+    
     getDashboardStats: async () => {
       const full = await API.getFullData();
       return {
@@ -87,7 +84,6 @@ const API = (() => {
       };
     },
     
-    // ✅ Mutations — clear cache ฝั่ง client
     addTransaction: (data) => jsonp({ action: 'addTransaction', data: JSON.stringify(data) })
       .then(r => { fullDataCache = null; return r; }),
     updateTransaction: (id, data) => jsonp({ action: 'updateTransaction', id, data: JSON.stringify(data) })
