@@ -3,7 +3,7 @@
 // ============================================
 const CONFIG = {
   // 🔥 ใส่ Web App URL
-  API_URL: 'https://script.google.com/macros/s/AKfycbwNU4At02y8CJf-7ebpMfrP_osOuQ_ZiUaHj2noD8r_5XxLw5vKlNPHAkjDRBzC3owSTg/exec',
+  API_URL: 'https://script.google.com/macros/s/AKfycbw9kAvn8hjtnbpd9T-XluEpRQ-vMtrNH8M68h5KLyxGKhidZpkHvnaI-u4PKUXpp54FCA/exec',
   
   CACHE_TTL: 300000,
   CURRENCY: '฿',
