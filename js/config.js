@@ -2,8 +2,8 @@
 // ⚙️ CONFIG
 // ============================================
 const CONFIG = {
-  // 🔥 ใส่ Web App URL
-  API_URL: 'https://script.google.com/macros/s/AKfycbw9kAvn8hjtnbpd9T-XluEpRQ-vMtrNH8M68h5KLyxGKhidZpkHvnaI-u4PKUXpp54FCA/exec',
+  // 🔥 ใส่ Web App URL ของคุณ
+  API_URL: 'https://script.google.com/macros/s/AKfycbwNU4At02y8CJf-7ebpMfrP_osOuQ_ZiUaHj2noD8r_5XxLw5vKlNPHAkjDRBzC3owSTg/exec',
   
   CACHE_TTL: 300000,
   CURRENCY: '฿',
@@ -27,16 +27,7 @@ const CONFIG = {
   },
   
   CHART_COLORS: [
-    '#E8A598', // Rose gold
-    '#8B5FA8', // Royal purple
-    '#9BAE7C', // Olive
-    '#E5C9A0', // Champagne
-    '#D4647E', // Berry
-    '#C4785A', // Copper
-    '#F5C6BB', // Light rose
-    '#B89BC9', // Light purple
-    '#C8DCAB', // Light olive
-    '#F5D9A0', // Light champagne
-    '#FFB0C0'  // Light berry
+    '#E8A598', '#8B5FA8', '#9BAE7C', '#E5C9A0', '#D4647E',
+    '#C4785A', '#F5C6BB', '#B89BC9', '#C8DCAB', '#F5D9A0', '#FFB0C0'
   ]
 };
